@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: blogger-api
+    process: web
+  name: blogger-api-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blogger-api
+      process: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: blogger-api
+        process: web
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: "3000"
+        - name: RAILS_ENV
+          value: production
+        - name: RACK_ENV
+          value: production
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: blogger-credentials
+              key: db_host
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: blogger-credentials
+              key: db_username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: blogger-credentials
+              key: db_password
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: blogger-credentials
+              key: db_name
+        image: sreeharikmarar/blogger:0.0.8
+        imagePullPolicy: IfNotPresent
+        name: blogger-api-web
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2

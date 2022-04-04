@@ -1,0 +1,10 @@
+apiversion: api.tsb.tetrate.io/v2
+kind: Workspace
+metadata:
+  organization: tetrate
+  tenant: marketing
+  name: marketing-ws
+spec:
+  namespaceSelector:
+    names:
+      - "<cluster>/tsb-cz-demo"

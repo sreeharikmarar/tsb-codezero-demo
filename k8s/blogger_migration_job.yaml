@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: blogger-api-migrate
+  labels:
+    app.kubernetes.io/name: blogger-api-migrate
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: blogger-api-migrate
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - command:
+        - bundle
+        - exec
+        - rake
+        - db:migrate
+        env:
+          - name: RAILS_ENV
+            value: production
+          - name: RAKE_ENV
+            value: production
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: blogger-credentials
+                key: db_host
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: blogger-credentials
+                key: db_username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: blogger-credentials
+                key: db_password
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: blogger-credentials
+                key: db_name
+        image: sreeharikmarar/blogger:0.0.8
+        imagePullPolicy: IfNotPresent
+        name: migration
+      restartPolicy: Never

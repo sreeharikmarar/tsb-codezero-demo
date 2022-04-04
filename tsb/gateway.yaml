@@ -1,0 +1,21 @@
+apiVersion: gateway.tsb.tetrate.io/v2
+kind: IngressGateway
+Metadata:
+  organization: tetrate
+  name: blogger-gw-ingress
+  group: blogger-gw
+  workspace: marketing-ws
+  tenant: marketing
+spec:
+  workloadSelector:
+    namespace: tsb-cz-demo
+    labels:
+      app: tsb-gateway-blogger
+  http:
+    - name: blogger
+      port: 8080
+      hostname: "blogger.tetrate.com"
+      routing:
+        rules:
+          - route:
+              host: "tsb-cz-demo/blogger.tsb-cz-demo.svc.cluster.local"
