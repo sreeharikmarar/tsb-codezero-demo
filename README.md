@@ -30,7 +30,7 @@ $: kubectl apply -f blogger_service.yaml -n tsb-cz-demo
 
 ### TSB Configuration
 
-Create Tenant, Groups, Ingress, Gateway configuration 
+Create Tenant, Groups, Ingress, Application & API configuration 
 
 Tenant
 
@@ -127,32 +127,28 @@ Ingress LoadBalancer
 $: kubectl apply -f tsb/ingress.yaml
 ```
 
-IngressGateway
+Blogger Application
 
 ```
-    apiVersion: gateway.tsb.tetrate.io/v2
-    kind: IngressGateway
-    Metadata:
+    apiversion: application.tsb.tetrate.io/v2
+    kind: Application
+    metadata:
     organization: tetrate
-    name: blogger-gw-ingress
-    group: blogger-gw
-    workspace: marketing-ws
     tenant: marketing
+    name: blogger
     spec:
-    workloadSelector:
-        namespace: tsb-cz-demo
-        labels:
-        app: tsb-gateway-blogger
-    http:
-        - name: blogger
-        port: 8080
-        hostname: "blogger.tetrate.com"
-        routing:
-            rules:
-            - route:
-                host: "tsb-cz-demo/blogger.tsb-cz-demo.svc.cluster.local"
+    displayName: Blogger
+    description: Blogger application
+    workspace: organizations/tetrate/tenants/marketing/workspaces/marketing-ws
+    gatewayGroup: organizations/tetrate/tenants/marketing/workspaces/marketing-ws/gatewaygroups/blogger-gw
 
 $: tctl apply -f tsb/gateway.yaml
+```
+
+Blogger API
+
+```
+$: tctl apply -f tsb/api.yaml
 ```
 
 ### Verify Exposed Application in TSB
@@ -166,7 +162,7 @@ server: istio-envoy
 date: Mon, 04 Apr 2022 17:27:52 GMT
 content-type: application/json; charset=utf-8
 
-{"posts":[{"id":3,"title":"user 20 - my first post","content":"Recusandae minima consequatur. Expedita sequi blanditiis. Ut fuga et.","author":"user1"}]}%
+{"posts":[{"id":1,"title":"How to build a ROR application","content":"Creating the Blog Application — This guide is designed for beginners who want to get started with creating a Rails application from scratch. It does","author":"Petr"}]}%
 ```
 
 
@@ -186,12 +182,26 @@ $: bundle exec rails s
 ```
 $: curl http://localhost:3000/api/v1/posts
 
-{"posts":[{"id":1,"title":"my first post","content":"Recusandae minima consequatur. Expedita sequi blanditiis. Ut fuga et.","author":"user1"}]}
+{"posts":[{"id":1,"title":"user1 - test post","content":"Recusandae minima consequatur. Expedita sequi blanditiis. Ut fuga et.","author":"user1"}]}
+```
+
+### Allow Rails Application to receieve requests from ngrok domain
+
+Add the below line to `config/environments/development.rb` and restart the rails server
+
+```
+config.hosts << /.*\.ngrok\.io$/
 ```
 
 ## Intercept Blogger Traffic from remote cluster to local instance
 
 ```
+$: czctl start
+
+✔  Starting daemon                                                                              Done
+✔  Start request received                                                                       Done
+✔  Initializing daemon version 1.4.0                                                            Done
+
 $: czctl intercept service blogger -n tsb-cz-demo
 
 ✔  Initiating intercept                                                                         Done
@@ -205,7 +215,7 @@ $: czctl intercept service blogger -n tsb-cz-demo
 
 ```
 
-### Verify traffic has been intercepted by codezero
+### Verify traffic has been intercepted by CodeZero
 
 Set `X-C6O-INTERCEPT: yes` header
 
@@ -219,7 +229,7 @@ date: Mon, 04 Apr 2022 17:37:20 GMT
 content-type: application/json; charset=utf-8
 ngrok-agent-ips: 2409:4073:4e1f:72ab:e035:8e0e:c93a:5553
 
-{"posts":[{"id":1,"title":"my first post","content":"Recusandae minima consequatur. Expedita sequi blanditiis. Ut fuga et.","author":"user1"}]}%
+{"posts":[{"id":1,"title":"user1 - test post","content":"Recusandae minima consequatur. Expedita sequi blanditiis. Ut fuga et.","author":"user1"}]}
 ```
 
 You will see the response from the service running locally being intercepted. 

@@ -1,0 +1,11 @@
+apiversion: application.tsb.tetrate.io/v2
+kind: Application
+metadata:
+  organization: tetrate
+  tenant: marketing
+  name: blogger
+spec:
+  displayName: Blogger
+  description: Blogger application
+  workspace: organizations/tetrate/tenants/marketing/workspaces/marketing-ws
+  gatewayGroup: organizations/tetrate/tenants/marketing/workspaces/marketing-ws/gatewaygroups/blogger-gw

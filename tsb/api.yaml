@@ -1,0 +1,264 @@
+apiversion: application.tsb.tetrate.io/v2
+kind: API
+metadata:
+  organization: tetrate
+  tenant: marketing
+  application: blogger
+  name: blogger
+spec:
+  displayName: Blogger API
+  description: Blogger API
+  workloadSelector:
+    namespace: tsb-cz-demo
+    labels:
+      app: tsb-gateway-blogger
+  openapi: |
+    openapi: 3.0.3
+    info:
+      title: blogger
+      version: 1.0.0
+      x-tsb-service: blogger.tsb-cz-demo
+    servers:
+      - url: http://blogger.tetrate.com/api
+    paths:
+      "/v1/auth/user":
+        post:
+          summary: authenticate
+          tags:
+          - Api::V1::Authentication
+          requestBody:
+            content:
+              application/x-www-form-urlencoded:
+                schema:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    password:
+                      type: string
+                example:
+                  email: user1@test.com
+                  password: password
+          responses:
+            '200':
+              description: authenticates a user when the credentials are valid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                  example:
+                    token: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyMzksImV4cCI6MTY0Mjk2NDU4NX0.NPjDoV-e7vtBzUFmz1q1stvjcxJPv6hXbALy5NQ_TLw
+            '401':
+              description: fails to authenticate a user when the crentials are invalid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: object
+                        properties:
+                          user_authentication:
+                            type: string
+                  example:
+                    error:
+                      user_authentication: invalid credentials
+      "/v1/users":
+        post:
+          summary: create
+          tags:
+          - Api::V1::User
+          requestBody:
+            content:
+              application/x-www-form-urlencoded:
+                schema:
+                  type: object
+                  properties:
+                    user:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        password:
+                          type: string
+                example:
+                  user:
+                    name: user1
+                    email: user1@test.com
+                    password: password
+          responses:
+            '201':
+              description: creates a new user when the request is valid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                  example:
+                    name: user1
+                    email: user1@test.com
+            '422':
+              description: fails when the name is invalid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                  example:
+                    error: Name is too short (minimum is 3 characters)
+      "/v1/posts":
+        post:
+          summary: create
+          tags:
+          - Api::V1::Post
+          requestBody:
+            content:
+              application/x-www-form-urlencoded:
+                schema:
+                  type: object
+                  properties:
+                    post:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        content:
+                          type: string
+                example:
+                  post:
+                    title: Recusandae minima consequatur
+                    content: Recusandae minima consequatur. Expedita sequi blanditiis.
+                      Ut fuga et
+          responses:
+            '201':
+              description: creates a new post when the request is valid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      content:
+                        type: string
+                      author:
+                        type: string
+                  example:
+                    title: Recusandae minima consequatur
+                    content: Recusandae minima consequatur. Expedita sequi blanditiis.
+                      Ut fuga et
+                    author: user1
+            '401':
+              description: fails when the token is not present
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                  example:
+                    error: Not Authorized
+            '422':
+              description: fails when the title is not present
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                  example:
+                    error: Title can't be blank
+        get:
+          summary: index
+          tags:
+          - Api::V1::Post
+          responses:
+            '200':
+              description: retrives first 10 posts
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          nullable: true
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            content:
+                              type: string
+                            author:
+                              type: string
+                            id:
+                              type: integer
+                  example:
+                    posts: []
+      "/v1/posts/{post_id}/comments":
+        post:
+          summary: create
+          tags:
+          - Api::V1::Comment
+          parameters:
+          - name: post_id
+            in: path
+            required: true
+            schema:
+              type: integer
+            example: 40ß
+          responses:
+            '401':
+              description: creates a new comment when the request is valid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                  example:
+                    error: Not Authorized
+            '201':
+              description: creates a new comment when the request is valid
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      description:
+                        type: string
+                      user:
+                        type: string
+                  example:
+                    description: Recusandae minima consequatur
+                    user: user1
+          requestBody:
+            content:
+              application/x-www-form-urlencoded:
+                schema:
+                  type: object
+                  properties:
+                    comment:
+                      type: object
+                      properties:
+                        description:
+                          type: string
+                example:
+                  comment:
+                    description: Recusandae minima consequatur
+    
